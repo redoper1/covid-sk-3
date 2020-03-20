@@ -49,9 +49,85 @@ Apify.main(async () => {
         const totalInfected = elementContains('.dock-element .caption span', 'Celkovo potvrdení').closest('.dock-element').querySelector('.responsive-text-label text').textContent.replace(',', '');
         const totalNegative = elementContains('.dock-element .caption span', 'Celkovo negatívne testy').closest('.dock-element').querySelector('.responsive-text-label text').textContent.replace(',', '');
 
+        //Get data from graphs
+        let dataByDates = {};
+
+        //Graph of infected
+        let graphInfectedNodes = new Array();
+        let graphInfectedNodes2 = new Array();
+        function getGraphInfected() {
+            const graphLines = elementContains('.chart-widget .widget-header', 'Potvrdené prípady').closest('.chart-widget').querySelectorAll('.amcharts-graph-line');
+            graphLines.forEach(function(value, index) {
+                if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Celkovo')) {
+                    graphInfectedNodes = value.querySelectorAll('circle');
+                }
+                if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Denný prírastok') || value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Denný prirastok')) {
+                    graphInfectedNodes2 = value.querySelectorAll('circle');
+                }
+            });
+        }
+        getGraphInfected();
+        graphInfectedNodes.forEach(function(value, index) {
+            const data = value.getAttribute('aria-label');
+            let date = data.replace('Celkovo', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('Celkovo', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
+            const infectedCount = data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') ? data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') : 0;
+
+            if (!dataByDates[date]) {
+                dataByDates[date] = {};
+            }
+            dataByDates[date]['infectedTotal'] = infectedCount;
+        });
+        graphInfectedNodes2.forEach(function(value, index) {
+            const data = value.getAttribute('aria-label');
+            let date = data.replace('Denný prirastok', '').replace('Denný prírastok', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('Denný prirastok', '').replace('Denný prírastok', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
+            const infectedCount = data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') ? data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') : 0;
+
+            if (!dataByDates[date]) {
+                dataByDates[date] = {};
+            }
+            dataByDates[date]['infectedNew'] = infectedCount;
+        });
+
+        //Graph of negative
+        let graphNegativeNodes = new Array();
+        let graphNegativeNodes2 = new Array();
+        function getGraphNegative() {
+            const graphLines = elementContains('.chart-widget .widget-header', 'Negatívne testy').closest('.chart-widget').querySelectorAll('.amcharts-graph-line');
+            graphLines.forEach(function(value, index) {
+                if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Celkovo')) {
+                    graphNegativeNodes = value.querySelectorAll('circle');
+                }
+                if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Denný prírastok') || value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Denný prirastok')) {
+                    graphNegativeNodes2 = value.querySelectorAll('circle');
+                }
+            });
+        }
+        getGraphNegative();
+        graphNegativeNodes.forEach(function(value, index) {
+            const data = value.getAttribute('aria-label');
+            let date = data.replace('Celkovo', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('Celkovo', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
+            const negativeCount = data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') ? data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') : 0;
+
+            if (!dataByDates[date]) {
+                dataByDates[date] = {};
+            }
+            dataByDates[date]['negativeTotal'] = negativeCount;
+        });
+        graphNegativeNodes2.forEach(function(value, index) {
+            const data = value.getAttribute('aria-label');
+            let date = data.replace('Denný prirastok', '').replace('Denný prírastok', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('Denný prirastok', '').replace('Denný prírastok', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
+            const negativeCount = data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') ? data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') : 0;
+
+            if (!dataByDates[date]) {
+                dataByDates[date] = {};
+            }
+            dataByDates[date]['negativeNew'] = negativeCount;
+        });
+
         const lastUpdated = elementContains('.external-html h3 span span', 'Stav k').textContent.replace('Stav k', '').trim().replace(/\. /g, '.');
 
         return {
+            dataByDates: dataByDates,
             lastUpdated: lastUpdated,
             totalInfected: totalInfected,
             totalNegative: totalNegative
@@ -69,6 +145,7 @@ Apify.main(async () => {
     const now = new Date();
 
     const data = {
+        dataByDates: extractedData.dataByDates,
         totalInfected: extractedData.totalInfected,
         totalNegative: extractedData.totalNegative,
         sourceUrl: url,
