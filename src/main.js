@@ -72,6 +72,8 @@ Apify.main(async () => {
             let date = data.replace('Celkovo', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('Celkovo', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
             const infectedCount = data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') ? data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') : 0;
 
+            date = new Date(Date.parse(date.replace(',', ''))).toISOString();
+
             if (!dataByDates[date]) {
                 dataByDates[date] = {};
             }
@@ -81,6 +83,8 @@ Apify.main(async () => {
             const data = value.getAttribute('aria-label');
             let date = data.replace('Denný prirastok', '').replace('Denný prírastok', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('Denný prirastok', '').replace('Denný prírastok', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
             const infectedCount = data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') ? data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') : 0;
+
+            date = new Date(Date.parse(date.replace(',', ''))).toISOString();
 
             if (!dataByDates[date]) {
                 dataByDates[date] = {};
@@ -108,6 +112,8 @@ Apify.main(async () => {
             let date = data.replace('Celkovo', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('Celkovo', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
             const negativeCount = data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') ? data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') : 0;
 
+            date = new Date(Date.parse(date.replace(',', ''))).toISOString();
+
             if (!dataByDates[date]) {
                 dataByDates[date] = {};
             }
@@ -117,6 +123,8 @@ Apify.main(async () => {
             const data = value.getAttribute('aria-label');
             let date = data.replace('Denný prirastok', '').replace('Denný prírastok', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('Denný prirastok', '').replace('Denný prírastok', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
             const negativeCount = data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') ? data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') : 0;
+
+            date = new Date(Date.parse(date.replace(',', ''))).toISOString();
 
             if (!dataByDates[date]) {
                 dataByDates[date] = {};
