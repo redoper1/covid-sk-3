@@ -49,10 +49,10 @@ Apify.main(async () => {
         const totalInfected = elementContains('.dock-element .caption span', 'Celkovo potvrdení').closest('.dock-element').querySelector('.responsive-text-label text').textContent.replace(',', '');
         const totalNegative = elementContains('.dock-element .caption span', 'Celkovo negatívne testy').closest('.dock-element').querySelector('.responsive-text-label text').textContent.replace(',', '');
 
-        //Get data from graphs
+        /* Get data from graphs */
         let dataByDates = {};
 
-        //Graph of infected
+        // Graph of infected
         let graphInfectedNodes = new Array();
         let graphInfectedNodes2 = new Array();
         function getGraphInfected() {
@@ -88,7 +88,7 @@ Apify.main(async () => {
             dataByDates[date]['infectedNew'] = infectedCount;
         });
 
-        //Graph of negative
+        // Graph of negative
         let graphNegativeNodes = new Array();
         let graphNegativeNodes2 = new Array();
         function getGraphNegative() {
@@ -123,14 +123,46 @@ Apify.main(async () => {
             }
             dataByDates[date]['negativeNew'] = negativeCount;
         });
+        /* Get data from graphs end */
+
+        /* Get data by regions */
+        let dataByRegions = {};
+
+        // Get data by county
+        if (!dataByRegions['county']) {
+            dataByRegions['county'] = {};
+        }
+
+        let regionsNodes = new Array();
+        function getRegionsFromTable() {
+            const regionsItems = elementContains('.list-widget .widget-header', 'Stav podľa okresov').closest('.list-widget').querySelectorAll('.feature-list-item');
+            regionsItems.forEach(function(value, index) {
+                if (value.querySelector('.external-html span')) {
+                    regionsNodes.push(value.querySelector('.external-html span'));
+                }
+            });
+        }
+        getRegionsFromTable();
+        regionsNodes.forEach(function(value, index) {
+            const regionData = value.innerHTML;
+            const region = regionData.replace(/(?:&nbsp;)+<.*/g, '').replace('Okresy ', '').trim();
+            const infected = regionData.replace(/.*(?:e60000">)/g, '').replace(/(?:&nbsp;)<\/.*/g, '').trim();
+            const infectedNew = regionData.replace(/.*(?:00a9e6">&nbsp;)/g, '').replace(/<\/span><\/s.*/g, '').trim();
+            dataByRegions['county'][region] = {};
+            dataByRegions['county'][region]['infected'] = infected;
+            dataByRegions['county'][region]['infectedNew'] = infectedNew;
+        });
+
+        /* Get data by regions end */
 
         const lastUpdated = elementContains('.external-html h3 span span', 'Stav k').textContent.replace('Stav k', '').trim().replace(/\. /g, '.');
 
         return {
-            dataByDates: dataByDates,
             lastUpdated: lastUpdated,
             totalInfected: totalInfected,
-            totalNegative: totalNegative
+            totalNegative: totalNegative,
+            dataByDates: dataByDates,
+            dataByRegions: dataByRegions
         }
     });
 
@@ -146,6 +178,7 @@ Apify.main(async () => {
 
     const data = {
         dataByDates: extractedData.dataByDates,
+        dataByRegions: extractedData.dataByRegions,
         totalInfected: extractedData.totalInfected,
         totalNegative: extractedData.totalNegative,
         sourceUrl: url,
@@ -153,9 +186,6 @@ Apify.main(async () => {
         lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
         readMe: "https://apify.com/davidrychly/covid-sk-3",
     };
-
-
-    console.log(data);
 
     // Compare and save to history
     const latest = await kvStore.getValue(LATEST);
