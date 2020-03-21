@@ -50,7 +50,8 @@ Apify.main(async () => {
         const totalNegative = elementContains('.dock-element .caption span', 'Celkovo negatívne testy').closest('.dock-element').querySelector('.responsive-text-label text').textContent.replace(',', '');
 
         /* Get data from graphs */
-        let dataByDates = {};
+        let dataByDatesTemp = {};
+        let dataByDates = new Array();
 
         // Graph of infected
         let graphInfectedNodes = new Array();
@@ -74,10 +75,10 @@ Apify.main(async () => {
 
             date = new Date(Date.parse(date.replace(',', ''))).toISOString();
 
-            if (!dataByDates[date]) {
-                dataByDates[date] = {};
+            if (!dataByDatesTemp[date]) {
+                dataByDatesTemp[date] = {};
             }
-            dataByDates[date]['infectedTotal'] = parseInt(infectedCount);
+            dataByDatesTemp[date]['infectedTotal'] = parseInt(infectedCount);
         });
         graphInfectedNodes2.forEach(function(value, index) {
             const data = value.getAttribute('aria-label');
@@ -86,10 +87,10 @@ Apify.main(async () => {
 
             date = new Date(Date.parse(date.replace(',', ''))).toISOString();
 
-            if (!dataByDates[date]) {
-                dataByDates[date] = {};
+            if (!dataByDatesTemp[date]) {
+                dataByDatesTemp[date] = {};
             }
-            dataByDates[date]['infectedNew'] = parseInt(infectedCount);
+            dataByDatesTemp[date]['infectedNew'] = parseInt(infectedCount);
         });
 
         // Graph of negative
@@ -114,10 +115,10 @@ Apify.main(async () => {
 
             date = new Date(Date.parse(date.replace(',', ''))).toISOString();
 
-            if (!dataByDates[date]) {
-                dataByDates[date] = {};
+            if (!dataByDatesTemp[date]) {
+                dataByDatesTemp[date] = {};
             }
-            dataByDates[date]['negativeTotal'] = parseInt(negativeCount);
+            dataByDatesTemp[date]['negativeTotal'] = parseInt(negativeCount);
         });
         graphNegativeNodes2.forEach(function(value, index) {
             const data = value.getAttribute('aria-label');
@@ -126,10 +127,20 @@ Apify.main(async () => {
 
             date = new Date(Date.parse(date.replace(',', ''))).toISOString();
 
-            if (!dataByDates[date]) {
-                dataByDates[date] = {};
+            if (!dataByDatesTemp[date]) {
+                dataByDatesTemp[date] = {};
             }
-            dataByDates[date]['negativeNew'] = parseInt(negativeCount);
+            dataByDatesTemp[date]['negativeNew'] = parseInt(negativeCount);
+        });
+
+        Object.entries(dataByDatesTemp).forEach(function(value, index) {
+            dataByDates.push({
+                'date': value[0],
+                "infectedTotal": parseInt(value[1]['infectedTotal']),
+                "infectedNew": parseInt(value[1]['infectedNew']),
+                "negativeTotal": parseInt(value[1]['negativeTotal']),
+                "negativeNew": parseInt(value[1]['negativeNew'])
+            });
         });
         /* Get data from graphs end */
 
@@ -138,7 +149,7 @@ Apify.main(async () => {
 
         // Get data by county
         if (!dataByRegions['county']) {
-            dataByRegions['county'] = {};
+            dataByRegions['county'] = new Array;
         }
 
         let regionsNodes = new Array();
@@ -156,9 +167,11 @@ Apify.main(async () => {
             const region = regionData.replace(/(?:&nbsp;)+<.*/g, '').replace('Okresy ', '').trim();
             const infected = regionData.replace(/.*(?:e60000">)/g, '').replace(/(?:&nbsp;)<\/.*/g, '').trim();
             const infectedNew = regionData.replace(/.*(?:00a9e6">&nbsp;)/g, '').replace(/<\/span><\/s.*/g, '').trim();
-            dataByRegions['county'][region] = {};
-            dataByRegions['county'][region]['infected'] = parseInt(infected);
-            dataByRegions['county'][region]['infectedNew'] = parseInt(infectedNew);
+            dataByRegions['county'].push({
+                'name': region,
+                'infected': parseInt(infected),
+                'infectedNew': parseInt(infectedNew)
+            });
         });
 
         // Get data by region
@@ -174,10 +187,17 @@ Apify.main(async () => {
         ];
 
         if (!dataByRegions['region']) {
-            dataByRegions['region'] = {};
+            dataByRegions['region'] = new Array();
         }
 
-        const assignCountyDataToRegion = (county, dataKey, dataValue) => {
+        let regionsData = {};
+
+        regionsNodes.forEach(function(value, index) {
+            const regionData = value.innerHTML;
+            const region = regionData.replace(/(?:&nbsp;)+<.*/g, '').replace('Okresy ', '').trim();
+            const infected = regionData.replace(/.*(?:e60000">)/g, '').replace(/(?:&nbsp;)<\/.*/g, '').trim();
+            const infectedNew = regionData.replace(/.*(?:00a9e6">&nbsp;)/g, '').replace(/<\/span><\/s.*/g, '').trim();
+
             const regionsByCounty = {
                 'Bratislavský': [
                     'Bratislava',
@@ -281,7 +301,7 @@ Apify.main(async () => {
             let resRegion = '???';
 
             for (const [key, value] of Object.entries(regionsByCounty)) {
-                if (value.includes(county)) {
+                if (value.includes(region)) {
                     resRegion = key;
                 }
             };
@@ -290,28 +310,30 @@ Apify.main(async () => {
                 console.error('error region: ' + county);
             }
 
-            if (!dataByRegions['region'][resRegion]) {
-                dataByRegions['region'][resRegion] = {};
+            if (!regionsData[resRegion]) {
+                regionsData[resRegion] = {};
             }
-            
-            if (!dataByRegions['region'][resRegion][dataKey]) {
-                dataByRegions['region'][resRegion][dataKey] = parseInt(dataValue);
+
+            if (!regionsData[resRegion]['infected']) {
+                regionsData[resRegion]['infected'] = parseInt(infected);
             } else {
-                dataByRegions['region'][resRegion][dataKey] = parseInt(dataByRegions['region'][resRegion][dataKey]) + parseInt(dataValue);
+                regionsData[resRegion]['infected'] = regionsData[resRegion]['infected'] + parseInt(infected);
             }
 
-            return;
-        }
-
-        regionsNodes.forEach(function(value, index) {
-            const regionData = value.innerHTML;
-            const region = regionData.replace(/(?:&nbsp;)+<.*/g, '').replace('Okresy ', '').trim();
-            const infected = regionData.replace(/.*(?:e60000">)/g, '').replace(/(?:&nbsp;)<\/.*/g, '').trim();
-            const infectedNew = regionData.replace(/.*(?:00a9e6">&nbsp;)/g, '').replace(/<\/span><\/s.*/g, '').trim();
-            assignCountyDataToRegion(region, 'infected', infected);
-            assignCountyDataToRegion(region, 'infectedNew', infectedNew);
+            if (!regionsData[resRegion]['infectedNew']) {
+                regionsData[resRegion]['infectedNew'] = parseInt(infectedNew);
+            } else {
+                regionsData[resRegion]['infectedNew'] = regionsData[resRegion]['infectedNew'] + parseInt(infectedNew);
+            }
         });
 
+        Object.entries(regionsData).forEach(function(value, index) {
+            dataByRegions['region'].push({
+                'name': value[0],
+                'infected': parseInt(value[1]['infected']),
+                'infectedNew': parseInt(value[1]['infectedNew'])
+            });
+        });
         /* Get data by regions end */
 
         const lastUpdated = elementContains('.external-html h3 span span', 'Stav k').textContent.replace('Stav k', '').trim().replace(/\. /g, '.');
