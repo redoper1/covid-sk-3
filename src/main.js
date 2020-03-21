@@ -77,7 +77,7 @@ Apify.main(async () => {
             if (!dataByDates[date]) {
                 dataByDates[date] = {};
             }
-            dataByDates[date]['infectedTotal'] = infectedCount;
+            dataByDates[date]['infectedTotal'] = parseInt(infectedCount);
         });
         graphInfectedNodes2.forEach(function(value, index) {
             const data = value.getAttribute('aria-label');
@@ -89,7 +89,7 @@ Apify.main(async () => {
             if (!dataByDates[date]) {
                 dataByDates[date] = {};
             }
-            dataByDates[date]['infectedNew'] = infectedCount;
+            dataByDates[date]['infectedNew'] = parseInt(infectedCount);
         });
 
         // Graph of negative
@@ -117,7 +117,7 @@ Apify.main(async () => {
             if (!dataByDates[date]) {
                 dataByDates[date] = {};
             }
-            dataByDates[date]['negativeTotal'] = negativeCount;
+            dataByDates[date]['negativeTotal'] = parseInt(negativeCount);
         });
         graphNegativeNodes2.forEach(function(value, index) {
             const data = value.getAttribute('aria-label');
@@ -129,7 +129,7 @@ Apify.main(async () => {
             if (!dataByDates[date]) {
                 dataByDates[date] = {};
             }
-            dataByDates[date]['negativeNew'] = negativeCount;
+            dataByDates[date]['negativeNew'] = parseInt(negativeCount);
         });
         /* Get data from graphs end */
 
@@ -157,8 +157,159 @@ Apify.main(async () => {
             const infected = regionData.replace(/.*(?:e60000">)/g, '').replace(/(?:&nbsp;)<\/.*/g, '').trim();
             const infectedNew = regionData.replace(/.*(?:00a9e6">&nbsp;)/g, '').replace(/<\/span><\/s.*/g, '').trim();
             dataByRegions['county'][region] = {};
-            dataByRegions['county'][region]['infected'] = infected;
-            dataByRegions['county'][region]['infectedNew'] = infectedNew;
+            dataByRegions['county'][region]['infected'] = parseInt(infected);
+            dataByRegions['county'][region]['infectedNew'] = parseInt(infectedNew);
+        });
+
+        // Get data by region
+        const regions = [
+            'Bratislavský',
+            'Trnavský',
+            'Trenčínský',
+            'Nitranský',
+            'Žilinský',
+            'Banskobystrický',
+            'Prešovský',
+            'Košický'
+        ];
+
+        if (!dataByRegions['region']) {
+            dataByRegions['region'] = {};
+        }
+
+        const assignCountyDataToRegion = (county, dataKey, dataValue) => {
+            const regionsByCounty = {
+                'Bratislavský': [
+                    'Bratislava',
+                    'Bratislava I',
+                    'Bratislava II',
+                    'Bratislava III',
+                    'Bratislava IV',
+                    'Bratislava V',
+                    'Malacky',
+                    'Pezinok',
+                    'Senec'
+                ],
+                'Trnavský': [
+                    'Dunajská Streda',
+                    'Galanta',
+                    'Hlohovec',
+                    'Piešťany',
+                    'Senica',
+                    'Skalica',
+                    'Trnava'
+                ],
+                'Trenčínský': [
+                    'Bánovce nad Bebravou',
+                    'Ilava',
+                    'Myjava',
+                    'Nové Mesto nad Váhom',
+                    'Partizánske',
+                    'Považská Bystrica',
+                    'Prievidza',
+                    'Púchov',
+                    'Trenčín'
+                ],
+                'Nitranský': [
+                    'Komárno',
+                    'Levice',
+                    'Nitra',
+                    'Nové Zámky',
+                    'Šaľa',
+                    'Topoľčany',
+                    'Zlaté Moravce'
+                ],
+                'Žilinský': [
+                    'Bytča',
+                    'Čadca',
+                    'Dolný Kubín',
+                    'Kysucké Nové Mesto',
+                    'Liptovský Mikuláš',
+                    'Martin',
+                    'Námestovo',
+                    'Ružomberok',
+                    'Turčianske Teplice',
+                    'Tvrdošín',
+                    'Žilina'
+                ],
+                'Banskobystrický': [
+                    'Banská Bystrica',
+                    'Banská Štiavnica',
+                    'Brezno',
+                    'Detva',
+                    'Krupina',
+                    'Lučenec',
+                    'Poltár',
+                    'Revúca',
+                    'Rimavská Sobota',
+                    'Veľký Krtíš',
+                    'Zvolen',
+                    'Žarnovica',
+                    'Žiar nad Hronom'
+                ],
+                'Prešovský': [
+                    'Bardejov',
+                    'Humenné',
+                    'Kežmarok',
+                    'Levoča',
+                    'Medzilaborce',
+                    'Poprad',
+                    'Prešov',
+                    'Sabinov',
+                    'Snina',
+                    'Stará Ľubovňa',
+                    'Stropkov',
+                    'Svidník',
+                    'Vranov nad Topľou'
+                ],
+                'Košický': [
+                    'Gelnica',
+                    'Košice',
+                    'Košice I',
+                    'Košice II',
+                    'Košice III',
+                    'Košice IV',
+                    'Košice–okolí',
+                    'Michalovce',
+                    'Rožňava',
+                    'Sobrance',
+                    'Spišská Nová Ves',
+                    'Trebišov'
+                ]
+            }
+
+            let resRegion = '???';
+
+            for (const [key, value] of Object.entries(regionsByCounty)) {
+                if (value.includes(county)) {
+                    resRegion = key;
+                }
+            };
+
+            if (resRegion == '???') {
+                console.error('error region: ' + county);
+            }
+
+            if (!dataByRegions['region'][resRegion]) {
+                dataByRegions['region'][resRegion] = {};
+            }
+            
+            if (!dataByRegions['region'][resRegion][dataKey]) {
+                dataByRegions['region'][resRegion][dataKey] = parseInt(dataValue);
+            } else {
+                dataByRegions['region'][resRegion][dataKey] = parseInt(dataByRegions['region'][resRegion][dataKey]) + parseInt(dataValue);
+            }
+
+            return;
+        }
+
+        regionsNodes.forEach(function(value, index) {
+            const regionData = value.innerHTML;
+            const region = regionData.replace(/(?:&nbsp;)+<.*/g, '').replace('Okresy ', '').trim();
+            const infected = regionData.replace(/.*(?:e60000">)/g, '').replace(/(?:&nbsp;)<\/.*/g, '').trim();
+            const infectedNew = regionData.replace(/.*(?:00a9e6">&nbsp;)/g, '').replace(/<\/span><\/s.*/g, '').trim();
+            assignCountyDataToRegion(region, 'infected', infected);
+            assignCountyDataToRegion(region, 'infectedNew', infectedNew);
         });
 
         /* Get data by regions end */
@@ -187,8 +338,8 @@ Apify.main(async () => {
     const data = {
         dataByDates: extractedData.dataByDates,
         dataByRegions: extractedData.dataByRegions,
-        totalInfected: extractedData.totalInfected,
-        totalNegative: extractedData.totalNegative,
+        totalInfected: parseInt(extractedData.totalInfected),
+        totalNegative: parseInt(extractedData.totalNegative),
         sourceUrl: url,
         lastUpdatedAtSource: lastUpdatedParsed.toISOString(),
         lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
