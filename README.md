@@ -6,4 +6,4 @@ Latest data are available at this URL: https://api.apify.com/v2/key-value-stores
 
 You can find a dataset with unique history items at this URL: https://api.apify.com/v2/datasets/n6UBlZGIpYLwhk8Ff/items?format=json&clean=1.
 
-Website is being scraped every hour.
+Website is being scraped every 5 minutes.
