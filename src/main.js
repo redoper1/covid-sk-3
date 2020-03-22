@@ -350,7 +350,12 @@ Apify.main(async () => {
     const lastUpdated = extractedData.lastUpdated;
     const parts = lastUpdated.split(" ");
     const splited = parts[0].split(".");
-    let lastUpdatedParsed = new Date(`${splited[1]}.${splited[0]}.${splited[2]} ${parts[1]}`);
+    let lastUpdatedParsed = new Date();
+    if (parts.length > 1) {
+        lastUpdatedParsed = new Date(`${splited[1]}.${splited[0]}.${splited[2]} ${parts[1]}`);
+    } else if (parts.length == 1) {
+        lastUpdatedParsed = new Date(`${splited[1]}.${splited[0]}.${splited[2]}`);
+    }
     lastUpdatedParsed = new Date(Date.UTC(lastUpdatedParsed.getFullYear(), lastUpdatedParsed.getMonth(), lastUpdatedParsed.getDate(), lastUpdatedParsed.getHours() - 1, lastUpdatedParsed.getMinutes()));
 
     console.log(`Processing and saving data.`);
