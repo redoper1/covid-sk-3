@@ -290,6 +290,8 @@ Apify.main(async () => {
                     'Košice III',
                     'Košice IV',
                     'Košice–okolí',
+                    'Košice–okolie',
+                    'Košice - okolie',
                     'Michalovce',
                     'Rožňava',
                     'Sobrance',
@@ -307,7 +309,7 @@ Apify.main(async () => {
             };
 
             if (resRegion == '???') {
-                console.error('error region: ' + county);
+                console.error('error region: ' + region);
             }
 
             if (!regionsData[resRegion]) {
