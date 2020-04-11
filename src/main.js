@@ -32,11 +32,11 @@ Apify.main(async () => {
         const elementContains = (selector, pattern) => {
             const node = document.querySelectorAll(selector);
             if (node.length == 1) {
-                if (node[0].textContent.includes(pattern)) {        
+                if (node[0].textContent.includes(pattern)) {
                     return node[0];
                 }
             } else if (node.length > 1) {
-                let rightNode = {};
+                let rightNode = null;
                 node.forEach(function(value, index) {
                     if (value.textContent.includes(pattern)) {
                         rightNode = value;
@@ -46,8 +46,10 @@ Apify.main(async () => {
             }
         }
 
-        const totalInfected = elementContains('.dock-element .caption span', 'Celkovo potvrdení').closest('.dock-element').querySelector('.responsive-text-label text').textContent.replace(',', '');
-        const totalNegative = elementContains('.dock-element .caption span', 'Celkovo negatívne testy').closest('.dock-element').querySelector('.responsive-text-label text').textContent.replace(',', '');
+        let totalInfected = elementContains('.dock-element .caption span', 'Celkový počet pozitívnych vzoriek') !== null ? elementContains('.dock-element .caption span', 'Celkový počet pozitívnych vzoriek').closest('.dock-element').querySelector('.responsive-text-label text').textContent.replace(',', '') : null;
+        let totalNegative = elementContains('.dock-element .caption span', 'Celkovo negatívne testy') !== null ? elementContains('.dock-element .caption span', 'Celkovo negatívne testy').closest('.dock-element').querySelector('.responsive-text-label text').textContent.replace(',', '') : null;
+        let totalDeaths = elementContains('.dock-element .caption span', 'Celkový počet úmrtí') !== null ? elementContains('.dock-element .caption span', 'Celkový počet úmrtí').closest('.dock-element').querySelector('.responsive-text-label text').textContent.replace(',', '') : null;
+        let totalCured = elementContains('.dock-element .caption span', 'Celkový počet vyliečených') !== null ? elementContains('.dock-element .caption span', 'Celkový počet vyliečených').closest('.dock-element').querySelector('.responsive-text-label text').textContent.replace(',', '') : null;
 
         /* Get data from graphs */
         let dataByDatesTemp = {};
@@ -57,9 +59,9 @@ Apify.main(async () => {
         let graphInfectedNodes = new Array();
         let graphInfectedNodes2 = new Array();
         function getGraphInfected() {
-            const graphLines = elementContains('.chart-widget .widget-header', 'Potvrdené prípady').closest('.chart-widget').querySelectorAll('.amcharts-graph-line');
+            const graphLines = elementContains('.chart-widget .widget-header', 'Pozitívne vzorky') !== null ? elementContains('.chart-widget .widget-header', 'Pozitívne vzorky').closest('.chart-widget').querySelectorAll('.amcharts-graph-line') : null;
             graphLines.forEach(function(value, index) {
-                if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Celkovo')) {
+                if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Celkový')) {
                     graphInfectedNodes = value.querySelectorAll('circle');
                 }
                 if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Denný prírastok') || value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Denný prirastok')) {
@@ -70,7 +72,7 @@ Apify.main(async () => {
         getGraphInfected();
         graphInfectedNodes.forEach(function(value, index) {
             const data = value.getAttribute('aria-label');
-            let date = data.replace('Celkovo', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('Celkovo', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
+            let date = data.replace('Celkový', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('Celkový', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
             const infectedCount = data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') ? data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') : 0;
 
             date = new Date(Date.parse(date.replace(',', ''))).toISOString();
@@ -97,9 +99,9 @@ Apify.main(async () => {
         let graphNegativeNodes = new Array();
         let graphNegativeNodes2 = new Array();
         function getGraphNegative() {
-            const graphLines = elementContains('.chart-widget .widget-header', 'Negatívne testy').closest('.chart-widget').querySelectorAll('.amcharts-graph-line');
+            const graphLines = elementContains('.chart-widget .widget-header', 'Negatívne vzorky') !== null ? elementContains('.chart-widget .widget-header', 'Negatívne vzorky').closest('.chart-widget').querySelectorAll('.amcharts-graph-line') : null;
             graphLines.forEach(function(value, index) {
-                if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Celkovo')) {
+                if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Celkový')) {
                     graphNegativeNodes = value.querySelectorAll('circle');
                 }
                 if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Denný prírastok') || value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Denný prirastok')) {
@@ -110,7 +112,7 @@ Apify.main(async () => {
         getGraphNegative();
         graphNegativeNodes.forEach(function(value, index) {
             const data = value.getAttribute('aria-label');
-            let date = data.replace('Celkovo', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('Celkovo', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
+            let date = data.replace('Celkový', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('Celkový', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
             const negativeCount = data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') ? data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') : 0;
 
             date = new Date(Date.parse(date.replace(',', ''))).toISOString();
@@ -119,6 +121,12 @@ Apify.main(async () => {
                 dataByDatesTemp[date] = {};
             }
             dataByDatesTemp[date]['negativeTotal'] = parseInt(negativeCount);
+
+            if(index == (graphNegativeNodes.length - 1)) {
+                if(totalNegative == null) {
+                    totalNegative = parseInt(negativeCount);
+                }
+            }
         });
         graphNegativeNodes2.forEach(function(value, index) {
             const data = value.getAttribute('aria-label');
@@ -154,7 +162,7 @@ Apify.main(async () => {
 
         let regionsNodes = new Array();
         function getRegionsFromTable() {
-            const regionsItems = elementContains('.list-widget .widget-header', 'Stav podľa okresov').closest('.list-widget').querySelectorAll('.feature-list-item');
+            const regionsItems = elementContains('.list-widget .widget-header', 'Stav podľa okresov') !== null ? elementContains('.list-widget .widget-header', 'Stav podľa okresov').closest('.list-widget').querySelectorAll('.feature-list-item') : null;
             regionsItems.forEach(function(value, index) {
                 if (value.querySelector('.external-html span')) {
                     regionsNodes.push(value.querySelector('.external-html span'));
@@ -183,7 +191,8 @@ Apify.main(async () => {
             'Žilinský',
             'Banskobystrický',
             'Prešovský',
-            'Košický'
+            'Košický',
+            '?'
         ];
 
         if (!dataByRegions['region']) {
@@ -297,6 +306,10 @@ Apify.main(async () => {
                     'Sobrance',
                     'Spišská Nová Ves',
                     'Trebišov'
+                ],
+                '?': [
+                    '?',
+                    'neuvedený'
                 ]
             }
 
@@ -344,6 +357,8 @@ Apify.main(async () => {
             lastUpdated: lastUpdated,
             totalInfected: totalInfected,
             totalNegative: totalNegative,
+            totalDeaths: totalDeaths,
+            totalCured: totalCured,
             dataByDates: dataByDates,
             dataByRegions: dataByRegions
         }
@@ -369,6 +384,8 @@ Apify.main(async () => {
         dataByRegions: extractedData.dataByRegions,
         totalInfected: parseInt(extractedData.totalInfected),
         totalNegative: parseInt(extractedData.totalNegative),
+        totalDeaths: parseInt(extractedData.totalDeaths),
+        totalCured: parseInt(extractedData.totalCured),
         sourceUrl: url,
         lastUpdatedAtSource: lastUpdatedParsed.toISOString(),
         lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
