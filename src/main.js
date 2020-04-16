@@ -144,9 +144,9 @@ Apify.main(async () => {
         Object.entries(dataByDatesTemp).forEach(function(value, index) {
             dataByDates.push({
                 'date': value[0],
-                "infectedTotal": parseInt(value[1]['infectedTotal']),
+                "infected": parseInt(value[1]['infectedTotal']),
                 "infectedNew": parseInt(value[1]['infectedNew']),
-                "negativeTotal": parseInt(value[1]['negativeTotal']),
+                "negative": parseInt(value[1]['negativeTotal']),
                 "negativeNew": parseInt(value[1]['negativeNew'])
             });
         });
@@ -382,10 +382,13 @@ Apify.main(async () => {
     const data = {
         dataByDates: extractedData.dataByDates,
         dataByRegions: extractedData.dataByRegions,
-        totalInfected: parseInt(extractedData.totalInfected),
-        totalNegative: parseInt(extractedData.totalNegative),
-        totalDeaths: parseInt(extractedData.totalDeaths),
-        totalCured: parseInt(extractedData.totalCured),
+        infected: parseInt(extractedData.totalInfected),
+        negative: parseInt(extractedData.totalNegative),
+        tested: parseInt(extractedData.totalInfected) + parseInt(extractedData.totalNegative),
+        recovered: parseInt(extractedData.totalCured),
+        deceased: parseInt(extractedData.totalDeaths),
+        country: "Slovakia",
+        historyData: "https://api.apify.com/v2/datasets/oUWi8ci7F2R9V5ZFy/items?format=json&clean=1",
         sourceUrl: url,
         lastUpdatedAtSource: lastUpdatedParsed.toISOString(),
         lastUpdatedAtApify: new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes())).toISOString(),
