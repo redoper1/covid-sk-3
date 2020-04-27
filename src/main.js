@@ -48,31 +48,85 @@ Apify.main(async () => {
 
         let totalInfected = elementContains('.dock-element .caption span', 'Celkový počet pozitívnych vzoriek') !== null ? elementContains('.dock-element .caption span', 'Celkový počet pozitívnych vzoriek').closest('.dock-element').querySelector('.responsive-text-label text').textContent.replace(',', '') : null;
         let totalNegative = elementContains('.dock-element .caption span', 'Celkovo negatívne testy') !== null ? elementContains('.dock-element .caption span', 'Celkovo negatívne testy').closest('.dock-element').querySelector('.responsive-text-label text').textContent.replace(',', '') : null;
+        let totalTested = null;
         let totalDeaths = elementContains('.dock-element .caption span', 'Celkový počet úmrtí') !== null ? elementContains('.dock-element .caption span', 'Celkový počet úmrtí').closest('.dock-element').querySelector('.responsive-text-label text').textContent.replace(',', '') : null;
         let totalCured = elementContains('.dock-element .caption span', 'Celkový počet vyliečených') !== null ? elementContains('.dock-element .caption span', 'Celkový počet vyliečených').closest('.dock-element').querySelector('.responsive-text-label text').textContent.replace(',', '') : null;
+        let infectedCurrently = null;
 
         /* Get data from graphs */
         let dataByDatesTemp = {};
         let dataByDates = new Array();
 
-        // Graph of infected
-        let graphInfectedNodes = new Array();
-        let graphInfectedNodes2 = new Array();
-        function getGraphInfected() {
-            const graphLines = elementContains('.chart-widget .widget-header', 'Pozitívne vzorky') !== null ? elementContains('.chart-widget .widget-header', 'Pozitívne vzorky').closest('.chart-widget').querySelectorAll('.amcharts-graph-line') : null;
+        // Graph of tests
+        let graphTestsNodes = new Array();
+        let graphTestsNodes2 = new Array();
+        function getGraphTests() {
+            const graphLines = elementContains('.chart-widget .widget-header', 'Priebeh testovania') !== null ? elementContains('.chart-widget .widget-header', 'Priebeh testovania').closest('.chart-widget').querySelectorAll('.amcharts-graph-line') : null;
             graphLines.forEach(function(value, index) {
-                if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Celkový')) {
-                    graphInfectedNodes = value.querySelectorAll('circle');
+                if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Celkový počet testov')) {
+                    graphTestsNodes = value.querySelectorAll('circle');
                 }
-                if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Denný prírastok') || value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Denný prirastok')) {
-                    graphInfectedNodes2 = value.querySelectorAll('circle');
+                if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Denný prírastok testov')) {
+                    graphTestsNodes2 = value.querySelectorAll('circle');
                 }
             });
         }
-        getGraphInfected();
-        graphInfectedNodes.forEach(function(value, index) {
+        getGraphTests();
+        graphTestsNodes.forEach(function(value, index) {
             const data = value.getAttribute('aria-label');
-            let date = data.replace('Celkový', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('Celkový', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
+            let date = data.replace('Celkový počet testov', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('Celkový počet testov', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
+            const testedTotal = data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') ? data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') : 0;
+
+            date = new Date(Date.parse(date.replace(',', ''))).toISOString();
+
+            if (!dataByDatesTemp[date]) {
+                dataByDatesTemp[date] = {};
+            }
+            dataByDatesTemp[date]['testedTotal'] = parseInt(testedTotal);
+            if (index == graphTestsNodes.length - 1) {
+                totalTested = parseInt(testedTotal);
+            }
+
+        });
+        graphTestsNodes2.forEach(function(value, index) {
+            const data = value.getAttribute('aria-label');
+            let date = data.replace('Denný prírastok testov', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('Denný prírastok testov', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
+            const testedNew = data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') ? data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') : 0;
+
+            date = new Date(Date.parse(date.replace(',', ''))).toISOString();
+
+            if (!dataByDatesTemp[date]) {
+                dataByDatesTemp[date] = {};
+            }
+            dataByDatesTemp[date]['testedNew'] = parseInt(testedNew);
+        });
+
+        // Graph of development
+        let graphDevelopmentNodes = new Array();
+        let graphDevelopmentNodes2 = new Array();
+        let graphDevelopmentNodes3 = new Array();
+        let graphDevelopmentNodes4 = new Array();
+        function getGraphDevelopment() {
+            const graphLines = elementContains('.chart-widget .widget-header', 'Priebeh po dňoch') !== null ? elementContains('.chart-widget .widget-header', 'Priebeh po dňoch').closest('.chart-widget').querySelectorAll('.amcharts-graph-line') : null;
+            graphLines.forEach(function(value, index) {
+                if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Celkovo pozitívni')) {
+                    graphDevelopmentNodes = value.querySelectorAll('circle');
+                }
+                if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('aktívni pozitívni')) {
+                    graphDevelopmentNodes2 = value.querySelectorAll('circle');
+                }
+                if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('vyzdraveni')) {
+                    graphDevelopmentNodes3 = value.querySelectorAll('circle');
+                }
+                if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('mrtvi')) {
+                    graphDevelopmentNodes4 = value.querySelectorAll('circle');
+                }
+            });
+        }
+        getGraphDevelopment();
+        graphDevelopmentNodes.forEach(function(value, index) {
+            const data = value.getAttribute('aria-label');
+            let date = data.replace('Celkovo pozitívni', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('Celkovo pozitívni', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
             const infectedCount = data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') ? data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') : 0;
 
             date = new Date(Date.parse(date.replace(',', ''))).toISOString();
@@ -82,73 +136,74 @@ Apify.main(async () => {
             }
             dataByDatesTemp[date]['infectedTotal'] = parseInt(infectedCount);
         });
-        graphInfectedNodes2.forEach(function(value, index) {
+        graphDevelopmentNodes2.forEach(function(value, index) {
             const data = value.getAttribute('aria-label');
-            let date = data.replace('Denný prirastok', '').replace('Denný prírastok', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('Denný prirastok', '').replace('Denný prírastok', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
-            const infectedCount = data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') ? data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') : 0;
+            let date = data.replace('aktívni pozitívni', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('aktívni pozitívni', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
+            const infectedCurrentlyCount = data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') ? data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') : 0;
 
             date = new Date(Date.parse(date.replace(',', ''))).toISOString();
 
             if (!dataByDatesTemp[date]) {
                 dataByDatesTemp[date] = {};
             }
-            dataByDatesTemp[date]['infectedNew'] = parseInt(infectedCount);
-        });
-
-        // Graph of negative
-        let graphNegativeNodes = new Array();
-        let graphNegativeNodes2 = new Array();
-        function getGraphNegative() {
-            const graphLines = elementContains('.chart-widget .widget-header', 'Negatívne vzorky') !== null ? elementContains('.chart-widget .widget-header', 'Negatívne vzorky').closest('.chart-widget').querySelectorAll('.amcharts-graph-line') : null;
-            graphLines.forEach(function(value, index) {
-                if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Celkový')) {
-                    graphNegativeNodes = value.querySelectorAll('circle');
-                }
-                if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Denný prírastok') || value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Denný prirastok')) {
-                    graphNegativeNodes2 = value.querySelectorAll('circle');
-                }
-            });
-        }
-        getGraphNegative();
-        graphNegativeNodes.forEach(function(value, index) {
-            const data = value.getAttribute('aria-label');
-            let date = data.replace('Celkový', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('Celkový', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
-            const negativeCount = data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') ? data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') : 0;
-
-            date = new Date(Date.parse(date.replace(',', ''))).toISOString();
-
-            if (!dataByDatesTemp[date]) {
-                dataByDatesTemp[date] = {};
-            }
-            dataByDatesTemp[date]['negativeTotal'] = parseInt(negativeCount);
-
-            if(index == (graphNegativeNodes.length - 1)) {
-                if(totalNegative == null) {
-                    totalNegative = parseInt(negativeCount);
-                }
+            dataByDatesTemp[date]['infectedCurrently'] = parseInt(infectedCurrentlyCount);
+            if (index == graphTestsNodes.length - 1) {
+                infectedCurrently = parseInt(infectedCurrentlyCount);
             }
         });
-        graphNegativeNodes2.forEach(function(value, index) {
+        graphDevelopmentNodes3.forEach(function(value, index) {
             const data = value.getAttribute('aria-label');
-            let date = data.replace('Denný prirastok', '').replace('Denný prírastok', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('Denný prirastok', '').replace('Denný prírastok', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
-            const negativeCount = data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') ? data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') : 0;
+            let date = data.replace('vyzdraveni', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('vyzdraveni', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
+            const recovered = data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') ? data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') : 0;
 
             date = new Date(Date.parse(date.replace(',', ''))).toISOString();
 
             if (!dataByDatesTemp[date]) {
                 dataByDatesTemp[date] = {};
             }
-            dataByDatesTemp[date]['negativeNew'] = parseInt(negativeCount);
+            dataByDatesTemp[date]['recovered'] = parseInt(recovered);
+        });
+        graphDevelopmentNodes4.forEach(function(value, index) {
+            const data = value.getAttribute('aria-label');
+            let date = data.replace('mrtvi', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('mrtvi', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
+            const deceased = data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') ? data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') : 0;
+
+            date = new Date(Date.parse(date.replace(',', ''))).toISOString();
+
+            if (!dataByDatesTemp[date]) {
+                dataByDatesTemp[date] = {};
+            }
+            dataByDatesTemp[date]['deceased'] = parseInt(deceased);
         });
 
         Object.entries(dataByDatesTemp).forEach(function(value, index) {
-            dataByDates.push({
-                'date': value[0],
-                "infected": parseInt(value[1]['infectedTotal']),
-                "infectedNew": parseInt(value[1]['infectedNew']),
-                "negative": parseInt(value[1]['negativeTotal']),
-                "negativeNew": parseInt(value[1]['negativeNew'])
-            });
+            if (index > 0) {
+                dataByDates.push({
+                    "date": value[0],
+                    "infected": parseInt(value[1]['infectedTotal']),
+                    "infectedNew": parseInt(value[1]['infectedTotal']) - parseInt(dataByDates[index - 1]['infected']),
+                    "negative": parseInt(value[1]['testedTotal']) - parseInt(value[1]['infectedTotal']),
+                    "negativeNew": parseInt(value[1]['testedNew']) - (parseInt(value[1]['infectedTotal']) - parseInt(dataByDates[index - 1]['infected'])),
+                    "tested": parseInt(value[1]['testedTotal']),
+                    "testedNew": parseInt(value[1]['testedNew']),
+                    "recovered": parseInt(value[1]['recovered']),
+                    "deceased": parseInt(value[1]['deceased']),
+                    "infectedCurrently": parseInt(value[1]['infectedCurrently'])
+                });
+            } else {
+                dataByDates.push({
+                    "date": value[0],
+                    "infected": parseInt(value[1]['infectedTotal']),
+                    "infectedNew": 0,
+                    "negative": parseInt(value[1]['testedTotal']) - parseInt(value[1]['infectedTotal']),
+                    "negativeNew": parseInt(value[1]['testedNew']) - parseInt(value[1]['infectedTotal']),
+                    "tested": parseInt(value[1]['testedTotal']),
+                    "testedNew": parseInt(value[1]['testedNew']),
+                    "recovered": parseInt(value[1]['recovered']),
+                    "deceased": parseInt(value[1]['deceased']),
+                    "infectedCurrently": parseInt(value[1]['infectedCurrently'])
+                });
+            }
         });
         /* Get data from graphs end */
 
@@ -173,8 +228,8 @@ Apify.main(async () => {
         regionsNodes.forEach(function(value, index) {
             const regionData = value.innerHTML;
             const region = regionData.replace(/(?:&nbsp;)+<.*/g, '').replace('Okresy ', '').trim();
-            const infected = regionData.replace(/.*(?:e60000">)/g, '').replace(/(?:&nbsp;)<\/.*/g, '').trim();
-            const infectedNew = regionData.replace(/.*(?:00a9e6">&nbsp;)/g, '').replace(/<\/span><\/s.*/g, '').trim();
+            const infected = regionData.replace(/.*(?:e60000.*">)/g, '').replace(/(?:&nbsp;)<\/.*/g, '').trim();
+            const infectedNew = regionData.replace(/.*(?:00a9e6.*">&nbsp;)/g, '').replace(/<\/span><.*/g, '').trim();
             dataByRegions['county'].push({
                 'name': region,
                 'infected': parseInt(infected),
@@ -204,8 +259,8 @@ Apify.main(async () => {
         regionsNodes.forEach(function(value, index) {
             const regionData = value.innerHTML;
             const region = regionData.replace(/(?:&nbsp;)+<.*/g, '').replace('Okresy ', '').trim();
-            const infected = regionData.replace(/.*(?:e60000">)/g, '').replace(/(?:&nbsp;)<\/.*/g, '').trim();
-            const infectedNew = regionData.replace(/.*(?:00a9e6">&nbsp;)/g, '').replace(/<\/span><\/s.*/g, '').trim();
+            const infected = regionData.replace(/.*(?:e60000.*">)/g, '').replace(/(?:&nbsp;)<\/.*/g, '').trim();
+            const infectedNew = regionData.replace(/.*(?:00a9e6.*">&nbsp;)/g, '').replace(/<\/span><.*/g, '').trim();
 
             const regionsByCounty = {
                 'Bratislavský': [
@@ -356,7 +411,9 @@ Apify.main(async () => {
         return {
             lastUpdated: lastUpdated,
             totalInfected: totalInfected,
+            infectedCurrently: infectedCurrently,
             totalNegative: totalNegative,
+            totalTested: totalTested,
             totalDeaths: totalDeaths,
             totalCured: totalCured,
             dataByDates: dataByDates,
@@ -383,8 +440,9 @@ Apify.main(async () => {
         dataByDates: extractedData.dataByDates,
         dataByRegions: extractedData.dataByRegions,
         infected: parseInt(extractedData.totalInfected),
-        negative: parseInt(extractedData.totalNegative),
-        tested: parseInt(extractedData.totalInfected) + parseInt(extractedData.totalNegative),
+        infectedCurrently: parseInt(extractedData.infectedCurrently),
+        negative: parseInt(extractedData.totalTested) - parseInt(extractedData.totalInfected),
+        tested: parseInt(extractedData.totalTested),
         recovered: parseInt(extractedData.totalCured),
         deceased: parseInt(extractedData.totalDeaths),
         country: "Slovakia",
