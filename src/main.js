@@ -1,14 +1,9 @@
 const Apify = require('apify');
-const cheerio = require("cheerio");
-
-const toNumber = (str) => {
-    return parseInt(str.replace(",", ""))
-};
 
 const LATEST = "LATEST";
 
 Apify.main(async () => {
-    const url = "https://www.arcgis.com/apps/opsdashboard/index.html#/5fe83e34abc14349b7d2fcd5c48c6c85";
+    const url = "https://arcgeomkt.maps.arcgis.com/apps/dashboards/9881266b2f614c71882568fa730715f6";
     const kvStore = await Apify.openKeyValueStore("COVID-19-SLOVAK-3");
     const dataset = await Apify.openDataset("COVID-19-SLOVAK-3-HISTORY");
 
@@ -22,9 +17,9 @@ Apify.main(async () => {
 
     console.log(`Getting data from ${url}...`);
     const page = await browser.newPage();
-    await Apify.utils.puppeteer.injectJQuery(page);
     await page.goto(url, {waitUntil: "networkidle0", timeout: 60000});
 
+    await Apify.utils.puppeteer.injectJQuery(page);
     await page.waitFor(() => $("kpimetric:contains(Stav k)"));
     page.on("console", (log) => console.log(log.text()));
     await Apify.utils.sleep(10000);
@@ -46,12 +41,13 @@ Apify.main(async () => {
             }
         }
 
-        let totalInfected = elementContains('.dock-element .caption span', 'Celkový počet pozitívnych vzoriek') !== null ? elementContains('.dock-element .caption span', 'Celkový počet pozitívnych vzoriek').closest('.dock-element').querySelector('.responsive-text-label text').textContent.replace(',', '') : null;
+        let totalInfected = elementContains('.dock-element .caption span', 'Pozitívne testovaní celkovo') !== null ? elementContains('.dock-element .caption span', 'Pozitívne testovaní celkovo').closest('.dock-element').querySelector('.responsive-text-label text').textContent.replace(',', '') : null;
         let totalNegative = elementContains('.dock-element .caption span', 'Celkovo negatívne testy') !== null ? elementContains('.dock-element .caption span', 'Celkovo negatívne testy').closest('.dock-element').querySelector('.responsive-text-label text').textContent.replace(',', '') : null;
         let totalTested = null;
-        let totalDeaths = elementContains('.dock-element .caption span', 'Celkový počet úmrtí') !== null ? elementContains('.dock-element .caption span', 'Celkový počet úmrtí').closest('.dock-element').querySelector('.responsive-text-label text').textContent.replace(',', '') : null;
-        let totalCured = elementContains('.dock-element .caption span', 'Celkový počet vyliečených') !== null ? elementContains('.dock-element .caption span', 'Celkový počet vyliečených').closest('.dock-element').querySelector('.responsive-text-label text').textContent.replace(',', '') : null;
+        let totalDeaths = elementContains('.dock-element .caption span', 'Úmrtia celkovo') !== null ? elementContains('.dock-element .caption span', 'Úmrtia celkovo').closest('.dock-element').querySelector('.responsive-text-label text').textContent.replace(',', '') : null;
+        let totalCured = elementContains('.dock-element .caption span', 'Uzdravení celkovo') !== null ? elementContains('.dock-element .caption span', 'Uzdravení celkovo').closest('.dock-element').querySelector('.responsive-text-label text').textContent.replace(',', '') : null;
         let infectedCurrently = null;
+        let infectedNewToday = elementContains('.dock-element .caption span', 'Noví pozitívni') !== null ? elementContains('.dock-element .caption span', 'Noví pozitívni').closest('.dock-element').querySelector('.responsive-text-label text').textContent.replace(',', '') : null;;
 
         /* Get data from graphs */
         let dataByDatesTemp = {};
@@ -109,24 +105,28 @@ Apify.main(async () => {
         function getGraphDevelopment() {
             const graphLines = elementContains('.chart-widget .widget-header', 'Priebeh po dňoch') !== null ? elementContains('.chart-widget .widget-header', 'Priebeh po dňoch').closest('.chart-widget').querySelectorAll('.amcharts-graph-line') : null;
             graphLines.forEach(function(value, index) {
-                if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Celkovo pozitívni')) {
+                if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Pozitívne testovaní celkovo')) {
                     graphDevelopmentNodes = value.querySelectorAll('circle');
                 }
-                if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('aktívni pozitívni')) {
+                if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Aktívni pozitívni')) {
                     graphDevelopmentNodes2 = value.querySelectorAll('circle');
                 }
-                if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('vyzdraveni')) {
+                if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('Uzdravení')) {
                     graphDevelopmentNodes3 = value.querySelectorAll('circle');
                 }
-                if (value.querySelector('circle') && value.querySelector('circle').getAttribute('aria-label').startsWith('mrtvi')) {
-                    graphDevelopmentNodes4 = value.querySelectorAll('circle');
+            });
+
+            const graphColumns = elementContains('.chart-widget .widget-header', 'Priebeh po dňoch') !== null ? elementContains('.chart-widget .widget-header', 'Priebeh po dňoch').closest('.chart-widget').querySelectorAll('.amcharts-graph-column') : null;
+            graphColumns.forEach(function(value, index) {
+                if (value.querySelector('g.amcharts-graph-column') && value.querySelector('g.amcharts-graph-column').getAttribute('aria-label') && value.querySelector('g.amcharts-graph-column').getAttribute('aria-label').startsWith('Mŕtvi')) {
+                    graphDevelopmentNodes4 = value.querySelectorAll('g.amcharts-graph-column');
                 }
             });
         }
         getGraphDevelopment();
         graphDevelopmentNodes.forEach(function(value, index) {
             const data = value.getAttribute('aria-label');
-            let date = data.replace('Celkovo pozitívni', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('Celkovo pozitívni', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
+            let date = data.replace('Pozitívne testovaní celkovo', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('Pozitívne testovaní celkovo', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
             const infectedCount = data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') ? data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') : 0;
 
             date = new Date(Date.parse(date.replace(',', ''))).toISOString();
@@ -138,7 +138,7 @@ Apify.main(async () => {
         });
         graphDevelopmentNodes2.forEach(function(value, index) {
             const data = value.getAttribute('aria-label');
-            let date = data.replace('aktívni pozitívni', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('aktívni pozitívni', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
+            let date = data.replace('Aktívni pozitívni', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('Aktívni pozitívni', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
             const infectedCurrentlyCount = data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') ? data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') : 0;
 
             date = new Date(Date.parse(date.replace(',', ''))).toISOString();
@@ -147,13 +147,13 @@ Apify.main(async () => {
                 dataByDatesTemp[date] = {};
             }
             dataByDatesTemp[date]['infectedCurrently'] = parseInt(infectedCurrentlyCount);
-            if (index == graphTestsNodes.length - 1) {
+            if (index == graphDevelopmentNodes2.length - 1) {
                 infectedCurrently = parseInt(infectedCurrentlyCount);
             }
         });
         graphDevelopmentNodes3.forEach(function(value, index) {
             const data = value.getAttribute('aria-label');
-            let date = data.replace('vyzdraveni', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('vyzdraveni', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
+            let date = data.replace('Uzdravení', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('Uzdravení', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
             const recovered = data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') ? data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') : 0;
 
             date = new Date(Date.parse(date.replace(',', ''))).toISOString();
@@ -165,7 +165,7 @@ Apify.main(async () => {
         });
         graphDevelopmentNodes4.forEach(function(value, index) {
             const data = value.getAttribute('aria-label');
-            let date = data.replace('mrtvi', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('mrtvi', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
+            let date = data.replace('Mŕtvi', '').replace(/(, \d\d\d\d).*/g, '$1').trim() ? data.replace('Mŕtvi', '').replace(/(, \d\d\d\d).*/g, '$1').trim() : 0;
             const deceased = data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') ? data.replace(/.*, \d\d\d\d (.*)/g, '$1').trim().replace(',', '') : 0;
 
             date = new Date(Date.parse(date.replace(',', ''))).toISOString();
@@ -217,7 +217,7 @@ Apify.main(async () => {
 
         let regionsNodes = new Array();
         function getRegionsFromTable() {
-            const regionsItems = elementContains('.list-widget .widget-header', 'Stav podľa okresov') !== null ? elementContains('.list-widget .widget-header', 'Stav podľa okresov').closest('.list-widget').querySelectorAll('.feature-list-item') : null;
+            const regionsItems = elementContains('.list-widget .widget-header', 'Okresy') !== null ? elementContains('.list-widget .widget-header', 'Okresy').closest('.list-widget').querySelectorAll('.feature-list-item') : null;
             regionsItems.forEach(function(value, index) {
                 if (value.querySelector('.external-html span')) {
                     regionsNodes.push(value.querySelector('.external-html span'));
@@ -406,11 +406,12 @@ Apify.main(async () => {
         });
         /* Get data by regions end */
 
-        const lastUpdated = elementContains('.external-html h3 span span', 'Stav k').textContent.replace('Stav k', '').trim().replace(/\. /g, '.');
+        const lastUpdated = elementContains('.external-html h3 span', 'Stav k').textContent.replace('Stav k', '').trim().replace(/\. /g, '.');
 
         return {
             lastUpdated: lastUpdated,
             totalInfected: totalInfected,
+            infectedNewToday: infectedNewToday,
             infectedCurrently: infectedCurrently,
             totalNegative: totalNegative,
             totalTested: totalTested,
@@ -440,6 +441,7 @@ Apify.main(async () => {
         dataByDates: extractedData.dataByDates,
         dataByRegions: extractedData.dataByRegions,
         infected: parseInt(extractedData.totalInfected),
+        infectedNewToday : parseInt(extractedData.infectedNewToday),
         infectedCurrently: parseInt(extractedData.infectedCurrently),
         negative: parseInt(extractedData.totalTested) - parseInt(extractedData.totalInfected),
         tested: parseInt(extractedData.totalTested),
