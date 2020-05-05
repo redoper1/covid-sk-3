@@ -18,7 +18,7 @@ Apify.main(async () => {
 
     console.log(`Getting data from ${url}...`);
     const page = await browser.newPage();
-    await page.goto(url, {waitUntil: "networkidle0", timeout: 60000});
+    await page.goto(url, {waitUntil: "networkidle0", timeout: 120000});
 
     if (await page.$x("//*[contains(.,'Prejdite na novú verziu')]") !== null) {
         const hrefs = await page.evaluate(() => Array.from(
@@ -31,7 +31,7 @@ Apify.main(async () => {
 
     if (url != url0) {
         console.log(`Getting data from ${url}...`);
-        await page.goto(url, {waitUntil: "networkidle0", timeout: 60000});
+        await page.goto(url, {waitUntil: "networkidle0", timeout: 120000});
     }
 
     if (await page.$x("//div[contains(concat(' ',normalize-space(@class),' '),'widget-embed')]/iframe") !== null) {
@@ -42,7 +42,7 @@ Apify.main(async () => {
 
     if (url != url0) {
         console.log(`Getting data from ${url}...`);
-        await page.goto(url, {waitUntil: "networkidle0", timeout: 60000});
+        await page.goto(url, {waitUntil: "networkidle0", timeout: 120000});
     }
 
     /*page.exposeFunction("elementContains", elementContains);
