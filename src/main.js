@@ -10,7 +10,7 @@ Apify.main(async () => {
 
     console.log('Launching Puppeteer...');
     const browser = await Apify.launchPuppeteer({
-        headless: false,
+        headless: true,
         defaultViewport: {height: 1080, width: 1920},
         useChrome: true,
         useApifyProxy: false
