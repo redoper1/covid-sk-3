@@ -1,0 +1,130 @@
+repo_name: redoper1/covid-sk-3
+report_id: df59322f834a857257c5247c0b543a55
+version: 0.1
+repo_type: Public
+timestamp: '2024-02-08T20:03:08+00:00'
+requested_by: redoper1
+provider: github
+branch: master
+detected_tools_count: 10
+tools:
+- name: JavaScript
+  description: Lightweight, interpreted, object-oriented language with first-class
+    functions
+  website_url: https://developer.mozilla.org/en-US/docs/Web/JavaScript
+  open_source: true
+  hosted_saas: false
+  category: Languages & Frameworks
+  sub_category: Languages
+  image_url: https://img.stackshare.io/service/1209/javascript.jpeg
+  detection_source_url: https://github.com/redoper1/covid-sk-3
+  detection_source: Repo Metadata
+- name: Node.js
+  description: A platform built on Chrome's JavaScript runtime for easily building
+    fast, scalable network applications
+  website_url: http://nodejs.org/
+  open_source: true
+  hosted_saas: false
+  category: Languages & Frameworks
+  sub_category: Frameworks (Full Stack)
+  image_url: https://img.stackshare.io/service/1011/n1JRsFeB_400x400.png
+  detection_source_url: https://github.com/redoper1/covid-sk-3/blob/master/Dockerfile
+  detection_source: Dockerfile
+  last_updated_by: David Rychlý
+  last_updated_on: 2020-03-20 15:47:56.000000000 Z
+- name: Docker
+  description: Enterprise Container Platform for High-Velocity Innovation.
+  website_url: https://www.docker.com/
+  license: Apache-2.0
+  open_source: true
+  hosted_saas: false
+  category: Build, Test, Deploy
+  sub_category: Virtual Machine Platforms & Containers
+  image_url: https://img.stackshare.io/service/586/n4u37v9t_400x400.png
+  detection_source_url: https://github.com/redoper1/covid-sk-3
+  detection_source: Repo Metadata
+- name: ESLint
+  description: The fully pluggable JavaScript code quality tool
+  website_url: http://eslint.org/
+  license: MIT
+  open_source: true
+  hosted_saas: false
+  category: Build, Test, Deploy
+  sub_category: Code Review
+  image_url: https://img.stackshare.io/service/3337/Q4L7Jncy.jpg
+  detection_source_url: https://github.com/redoper1/covid-sk-3/blob/master/.eslintrc
+  detection_source: ".eslintrc"
+  last_updated_by: David Rychlý
+  last_updated_on: 2021-04-10 06:39:14.000000000 Z
+- name: Git
+  description: Fast, scalable, distributed revision control system
+  website_url: http://git-scm.com/
+  open_source: true
+  hosted_saas: false
+  category: Build, Test, Deploy
+  sub_category: Version Control System
+  image_url: https://img.stackshare.io/service/1046/git.png
+  detection_source_url: https://github.com/redoper1/covid-sk-3
+  detection_source: Repo Metadata
+- name: Puppeteer
+  description: Headless Chrome Node API
+  website_url: https://github.com/GoogleChrome/puppeteer
+  license: Apache-2.0
+  open_source: true
+  hosted_saas: false
+  category: Build, Test, Deploy
+  sub_category: Headless Browsers
+  image_url: https://img.stackshare.io/service/7553/puppeteer.png
+  detection_source_url: https://github.com/redoper1/covid-sk-3/blob/master/package.json
+  detection_source: package.json
+  last_updated_by: David Rychlý
+  last_updated_on: 2020-05-05 13:24:05.000000000 Z
+- name: npm
+  description: The package manager for JavaScript.
+  website_url: https://www.npmjs.com/
+  open_source: false
+  hosted_saas: false
+  category: Build, Test, Deploy
+  sub_category: Front End Package Manager
+  image_url: https://img.stackshare.io/service/1120/lejvzrnlpb308aftn31u.png
+  detection_source_url: https://github.com/redoper1/covid-sk-3/blob/master/package.json
+  detection_source: package.json
+  last_updated_by: David Rychlý
+  last_updated_on: 2020-03-20 15:47:56.000000000 Z
+- name: Apify
+  description: Cloud-based web scraping tool for developers
+  website_url: https://www.apify.com
+  open_source: false
+  hosted_saas: true
+  category: Application Utilities
+  sub_category: Web Scraping API
+  image_url: https://img.stackshare.io/service/3973/default_a3ef67d6db6a4961a2e142580c7448d225b08483.png
+  detection_source_url: https://github.com/redoper1/covid-sk-3/blob/master/package.json
+  detection_source: package.json
+  last_updated_by: David Rychlý
+  last_updated_on: 2020-03-20 15:47:56.000000000 Z
+- name: Alpine Linux
+  description: Security-oriented, lightweight Linux distribution based on musl libc
+    and busybox
+  website_url: https://www.alpinelinux.org/
+  open_source: false
+  hosted_saas: false
+  category: Languages & Frameworks
+  sub_category: Operating Systems
+  image_url: https://img.stackshare.io/service/6429/alpine_linux.png
+  detection_source_url: https://github.com/redoper1/covid-sk-3/blob/master/Dockerfile
+  detection_source: Dockerfile
+  last_updated_by: David Rychlý
+  last_updated_on: 2020-03-20 15:47:56.000000000 Z
+- name: Debian
+  description: The Universal Operating System
+  website_url: https://www.debian.org/
+  open_source: false
+  hosted_saas: false
+  category: Languages & Frameworks
+  sub_category: Operating Systems
+  image_url: https://img.stackshare.io/service/1656/vd4gAekh.png
+  detection_source_url: https://github.com/redoper1/covid-sk-3/blob/master/Dockerfile
+  detection_source: Dockerfile
+  last_updated_by: David Rychlý
+  last_updated_on: 2020-03-20 15:47:56.000000000 Z
